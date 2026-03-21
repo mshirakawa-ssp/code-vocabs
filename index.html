@@ -28,7 +28,7 @@
         <header class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-3xl font-black text-indigo-600 tracking-tighter">code-vocabs</h1>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest style="letter-spacing: 0.1em;">Programming Japanese</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest" style="letter-spacing: 0.1em;">Programming Japanese</p>
             </div>
             <select id="userType" class="bg-white border border-slate-200 text-[10px] font-bold rounded-lg px-2 py-1 outline-none focus:ring-2 ring-indigo-400">
                 <option value="ja-learner">🇨🇳 我在学日语 (Learning JA)</option>
@@ -60,7 +60,7 @@
                         <span class="text-sm font-bold text-slate-700">自动播放 (Auto-Play)</span>
                         <p class="text-[10px] text-slate-400 italic">自动朗读并翻牌</p>
                     </div>
-                    <button id="autoPlayToggle" class="px-6 py-2 bg-slate-800 text-white rounded-full text-xs font-black tracking-widest hover:bg-indigo-600 transition-all shadow-lg">开始</button>
+                    <button id="autoPlayToggle" class="px-6 py-2 bg-slate-800 text-white rounded-full text-xs font-black tracking-widest hover:bg-indigo-600 transition-all shadow-lg">開始</button>
                 </div>
             </div>
         </section>
@@ -68,7 +68,9 @@
         <div class="card-flip w-full h-80 relative mb-6">
             <div id="cardInner" class="card-inner">
                 <div class="card-front bg-white shadow-xl border border-white">
-                    <span id="cardCategory" class="absolute top-4 left-6 text-[10px] font-black text-indigo-400 uppercase tracking-widest">Category</span>
+                    <span id="cardCategory" class="absolute top-4 left-6 px-2 py-0.5 bg-indigo-50 text-[10px] font-black text-indigo-500 rounded uppercase tracking-widest border border-indigo-100">
+                        Category
+                    </span>
                     <div class="text-center w-full">
                         <p id="frontRead" class="text-slate-300 text-sm md:text-lg mb-2 min-h-[1.5rem] font-medium leading-tight px-4"></p>
                         <h2 id="frontText" class="text-3xl md:text-5xl font-bold text-slate-700 tracking-tight break-words px-4">----</h2>
