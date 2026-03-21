@@ -1,0 +1,19 @@
+# Python 仮想環境
+.venv/
+venv/
+ENV/
+
+# Python キャッシュ
+__pycache__/
+*.pyc
+
+# 開発用データ（生データなど）
+data/raw/
+
+# OS固有のファイル
+.DS_Store
+Thumbs.db
+
+# エディタ設定
+.vscode/
+.idea/
