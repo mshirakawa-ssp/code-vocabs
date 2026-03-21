@@ -17,7 +17,7 @@ const userTypeSelect = document.getElementById('userType');
 
 async function init() {
     try {
-        const res = await fetch('../data/dictionary.json');
+        const res = await fetch('data/dictionary.json');
         if (!res.ok) throw new Error('Fetch failed');
         dictionary = await res.json();
         
