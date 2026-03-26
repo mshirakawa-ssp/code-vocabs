@@ -7,6 +7,7 @@ let filteredList = [];
 let currentIndex = -1;
 let autoPlayTimeout = null;
 let isFlipped = false;
+let isFiltersPanelOpen = false;
 
 const cardInner = document.getElementById('cardInner');
 const autoPlayToggle = document.getElementById('autoPlayToggle');
@@ -14,6 +15,60 @@ const sourceContainer = document.getElementById('sourceFilters');
 const categoryContainer = document.getElementById('categoryFilters');
 const reviewModeToggle = document.getElementById('reviewModeToggle');
 const userTypeSelect = document.getElementById('userType');
+const filtersContent = document.getElementById('filtersContent');
+const filtersToggle = document.getElementById('filtersToggle');
+const wordProgress = document.getElementById('wordProgress');
+
+// --- localStorage helpers ---
+function saveFilterState() {
+    const selectedSrcs = Array.from(document.querySelectorAll('.src-filter:checked')).map(el => el.value);
+    const selectedCats = Array.from(document.querySelectorAll('.cat-filter:checked')).map(el => el.value);
+    localStorage.setItem('selectedSources', JSON.stringify(selectedSrcs));
+    localStorage.setItem('selectedCategories', JSON.stringify(selectedCats));
+}
+
+function saveCurrentIndex() {
+    localStorage.setItem('currentWordIndex', String(currentIndex));
+}
+
+function loadSelectedSources() {
+    const saved = localStorage.getItem('selectedSources');
+    return saved ? JSON.parse(saved) : null;
+}
+
+function loadSelectedCategories() {
+    const saved = localStorage.getItem('selectedCategories');
+    return saved ? JSON.parse(saved) : null;
+}
+
+function loadCurrentIndex() {
+    const saved = localStorage.getItem('currentWordIndex');
+    return saved !== null ? parseInt(saved, 10) : -1;
+}
+
+// --- Progress display ---
+function updateWordProgress() {
+    if (filteredList.length === 0 || currentIndex < 0) {
+        wordProgress.innerText = '';
+        return;
+    }
+    wordProgress.innerText = `单词 ${currentIndex + 1}/${filteredList.length}`;
+}
+
+// --- Filters panel toggle ---
+function setFiltersPanelOpen(open) {
+    isFiltersPanelOpen = open;
+    if (open) {
+        filtersContent.style.display = '';
+        filtersToggle.innerText = '▲';
+        wordProgress.style.display = 'none';
+    } else {
+        filtersContent.style.display = 'none';
+        filtersToggle.innerText = '▼';
+        wordProgress.style.display = '';
+        updateWordProgress();
+    }
+}
 
 async function init() {
     try {
@@ -21,10 +76,21 @@ async function init() {
         if (!res.ok) throw new Error('Fetch failed');
         dictionary = await res.json();
         
-        createFilters('source', sourceContainer, 'src-filter');
-        createFilters('category', categoryContainer, 'cat-filter');
+        createFilters('source', sourceContainer, 'src-filter', loadSelectedSources());
+        createFilters('category', categoryContainer, 'cat-filter', loadSelectedCategories());
         updateFilter();
-        showNext();
+
+        // Start collapsed by default
+        setFiltersPanelOpen(false);
+
+        // Restore last word index
+        const savedIndex = loadCurrentIndex();
+        if (savedIndex >= 0 && savedIndex < filteredList.length) {
+            currentIndex = savedIndex;
+            showCard(currentIndex);
+        } else {
+            showNext();
+        }
     } catch (e) {
         console.error(e);
         document.getElementById('frontText').innerText = "DATA ERROR";
@@ -32,20 +98,24 @@ async function init() {
 }
 
 // フィルタUIの動的作成用共通関数
-function createFilters(key, container, className) {
+function createFilters(key, container, className, savedSelection) {
     const values = [...new Set(dictionary.map(item => item[key]))];
     container.innerHTML = '';
     values.forEach(val => {
+        const isChecked = savedSelection ? savedSelection.includes(val) : true;
         const label = document.createElement('label');
-        label.className = "flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-[10px] font-black cursor-pointer hover:bg-indigo-50 transition-all select-none border-indigo-500 text-indigo-600";
-        label.innerHTML = `<input type="checkbox" class="${className}" value="${val}" checked> ${val.toUpperCase()}`;
+        label.className = "flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-[10px] font-black cursor-pointer hover:bg-indigo-50 transition-all select-none";
+        if (isChecked) label.classList.add('border-indigo-500', 'text-indigo-600');
+        label.innerHTML = `<input type="checkbox" class="${className}" value="${val}" ${isChecked ? 'checked' : ''}> ${val.toUpperCase()}`;
         container.appendChild(label);
         
         label.querySelector('input').addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            label.classList.toggle('border-indigo-500', isChecked);
-            label.classList.toggle('text-indigo-600', isChecked);
+            const checked = e.target.checked;
+            label.classList.toggle('border-indigo-500', checked);
+            label.classList.toggle('text-indigo-600', checked);
+            saveFilterState();
             updateFilter();
+            currentIndex = -1;
             showNext();
         });
     });
@@ -68,17 +138,20 @@ function updateFilter() {
     if (statusEl) statusEl.innerText = (isReviewMode && filteredList.length === 0) ? "EMPTY" : `${filteredList.length} WORDS`;
 }
 
-function showNext() {
+function showCard(index) {
     if (filteredList.length === 0) {
         document.getElementById('frontText').innerText = "EMPTY";
         document.getElementById('frontRead').innerText = "";
+        updateWordProgress();
         return;
     }
-    
+
     isFlipped = false;
     cardInner.classList.remove('is-flipped');
-    
-    currentIndex = Math.floor(Math.random() * filteredList.length);
+
+    currentIndex = (index % filteredList.length + filteredList.length) % filteredList.length;
+    saveCurrentIndex();
+
     const item = filteredList[currentIndex];
     const mode = userTypeSelect.value;
 
@@ -99,6 +172,25 @@ function showNext() {
     }
 
     updateMarkButton(item.ja);
+    updateWordProgress();
+}
+
+function showNext() {
+    if (filteredList.length === 0) {
+        showCard(0);
+        return;
+    }
+    const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % filteredList.length;
+    showCard(nextIndex);
+}
+
+function showPrev() {
+    if (filteredList.length === 0) {
+        showCard(0);
+        return;
+    }
+    const prevIndex = currentIndex < 0 ? 0 : (currentIndex - 1 + filteredList.length) % filteredList.length;
+    showCard(prevIndex);
 }
 
 function updateMarkButton(jaWord) {
@@ -162,9 +254,18 @@ function stopAutoPlay() {
 }
 
 // イベントリスナー
+filtersToggle.addEventListener('click', () => {
+    setFiltersPanelOpen(!isFiltersPanelOpen);
+});
+
 document.getElementById('nextBtn').addEventListener('click', () => {
     if (autoPlayToggle.innerText === "STOP") stopAutoPlay();
     showNext();
+});
+
+document.getElementById('prevBtn').addEventListener('click', () => {
+    if (autoPlayToggle.innerText === "STOP") stopAutoPlay();
+    showPrev();
 });
 
 cardInner.addEventListener('click', () => {
@@ -181,8 +282,13 @@ autoPlayToggle.addEventListener('click', () => {
     autoPlayToggle.innerText === "STOP" ? stopAutoPlay() : startAutoPlay();
 });
 
-reviewModeToggle.addEventListener('change', () => { updateFilter(); showNext(); });
-userTypeSelect.addEventListener('change', () => { updateFilter(); showNext(); });
+reviewModeToggle.addEventListener('change', () => {
+    updateFilter();
+    currentIndex = -1;
+    showNext();
+});
+
+userTypeSelect.addEventListener('change', () => { updateFilter(); showCard(Math.max(0, currentIndex)); });
 
 document.getElementById('markBtn').addEventListener('click', () => {
     if (filteredList.length === 0) return;
