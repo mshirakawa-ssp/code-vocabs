@@ -443,4 +443,46 @@ document.getElementById('statsModal').addEventListener('click', (e) => {
     if (e.target === document.getElementById('statsModal')) closeStats();
 });
 
+// キーボードショートカット
+document.addEventListener('keydown', (e) => {
+    // フォーカスが入力要素にある場合はスキップ
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.key) {
+        case 'ArrowRight':
+        case ' ':
+            e.preventDefault();
+            if (autoPlayToggle.innerText === 'STOP') stopAutoPlay();
+            showNext();
+            break;
+        case 'ArrowLeft':
+            e.preventDefault();
+            if (autoPlayToggle.innerText === 'STOP') stopAutoPlay();
+            showPrev();
+            break;
+        case 'Enter':
+            e.preventDefault();
+            if (autoPlayToggle.innerText === 'STOP') stopAutoPlay();
+            isFlipped = !isFlipped;
+            cardInner.classList.toggle('is-flipped');
+            if (filteredList.length > 0) {
+                const item = filteredList[currentIndex];
+                const mode = userTypeSelect.value;
+                if (isFlipped) mode === 'ja-learner' ? speak(item.ja, 'ja-JP') : speak(item.zh, 'zh-CN');
+                else mode === 'ja-learner' ? speak(item.zh, 'zh-CN') : speak(item.ja, 'ja-JP');
+            }
+            break;
+        case 'm':
+        case 'M':
+            e.preventDefault();
+            document.getElementById('markBtn').click();
+            break;
+        case 'a':
+        case 'A':
+            e.preventDefault();
+            autoPlayToggle.innerText === 'STOP' ? stopAutoPlay() : startAutoPlay();
+            break;
+    }
+});
+
 init();
