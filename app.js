@@ -45,8 +45,26 @@ function recordMarkingEvent() {
     localStorage.setItem('markingDates', JSON.stringify(dates));
 }
 
+function recordLearningEvent() {
+    const today = getTodayStr();
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const dates = JSON.parse(localStorage.getItem('learningDates') || '[]')
+        .filter(d => d >= cutoffStr);
+    dates.push(today);
+    localStorage.setItem('learningDates', JSON.stringify(dates));
+}
+
 function getMarkingCountsByDate() {
     const dates = JSON.parse(localStorage.getItem('markingDates') || '[]');
+    const counts = {};
+    dates.forEach(d => { counts[d] = (counts[d] || 0) + 1; });
+    return counts;
+}
+
+function getLearningCountsByDate() {
+    const dates = JSON.parse(localStorage.getItem('learningDates') || '[]');
     const counts = {};
     dates.forEach(d => { counts[d] = (counts[d] || 0) + 1; });
     return counts;
@@ -64,68 +82,86 @@ function getLast7Days() {
 
 function renderStats() {
     const marked = JSON.parse(localStorage.getItem('markedWords') || '[]');
+    const learned = JSON.parse(localStorage.getItem('learnedWords') || '[]');
     const total = dictionary.length;
     const markedCount = marked.length;
-    const markedRatio = total > 0 ? Math.round((markedCount / total) * 100) : 0;
+    const learnedCount = learned.length;
+    const pendingCount = total - markedCount - learnedCount;
+    const learnedRatio = total > 0 ? Math.round((learnedCount / total) * 100) : 0;
 
     // Category breakdown
     const categoryStats = {};
     dictionary.forEach(item => {
         if (!categoryStats[item.category]) {
-            categoryStats[item.category] = { total: 0, marked: 0 };
+            categoryStats[item.category] = { total: 0, marked: 0, learned: 0 };
         }
         categoryStats[item.category].total++;
-        if (marked.includes(item.ja)) {
-            categoryStats[item.category].marked++;
-        }
+        if (marked.includes(item.ja)) categoryStats[item.category].marked++;
+        if (learned.includes(item.ja)) categoryStats[item.category].learned++;
     });
 
     // 7-day trend
-    const countsByDate = getMarkingCountsByDate();
+    const markCountsByDate = getMarkingCountsByDate();
+    const learnCountsByDate = getLearningCountsByDate();
     const last7Days = getLast7Days();
-    const maxCount = Math.max(...last7Days.map(d => countsByDate[d] || 0), 1);
+    const maxCount = Math.max(
+        ...last7Days.map(d => (markCountsByDate[d] || 0) + (learnCountsByDate[d] || 0)),
+        1
+    );
     const BAR_MAX_PX = 48;
 
     // Overview section
     let html = `
         <div class="mb-6">
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">概览 (Overview)</h3>
-            <div class="grid grid-cols-3 gap-3 mb-4">
-                <div class="bg-indigo-50 rounded-xl p-3 text-center">
-                    <div class="text-2xl font-black text-indigo-600">${total}</div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase mt-1">总单词</div>
+            <div class="grid grid-cols-4 gap-2 mb-4">
+                <div class="bg-indigo-50 rounded-xl p-2 text-center">
+                    <div class="text-xl font-black text-indigo-600">${total}</div>
+                    <div class="text-[9px] font-bold text-slate-400 uppercase mt-1">总单词</div>
                 </div>
-                <div class="bg-orange-50 rounded-xl p-3 text-center">
-                    <div class="text-2xl font-black text-orange-500">${markedCount}</div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase mt-1">需复习</div>
+                <div class="bg-orange-50 rounded-xl p-2 text-center">
+                    <div class="text-xl font-black text-orange-500">${markedCount}</div>
+                    <div class="text-[9px] font-bold text-slate-400 uppercase mt-1">需复习</div>
                 </div>
-                <div class="bg-green-50 rounded-xl p-3 text-center">
-                    <div class="text-2xl font-black text-green-600">${total - markedCount}</div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase mt-1">待学习</div>
+                <div class="bg-green-50 rounded-xl p-2 text-center">
+                    <div class="text-xl font-black text-green-600">${learnedCount}</div>
+                    <div class="text-[9px] font-bold text-slate-400 uppercase mt-1">已掌握</div>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-2 text-center">
+                    <div class="text-xl font-black text-slate-500">${pendingCount}</div>
+                    <div class="text-[9px] font-bold text-slate-400 uppercase mt-1">待学习</div>
                 </div>
             </div>
             <div class="flex justify-between text-[10px] font-bold mb-1">
-                <span class="text-slate-500">复习进度</span>
-                <span class="text-indigo-600">${markedRatio}%</span>
+                <span class="text-slate-500">掌握进度</span>
+                <span class="text-green-600">${learnedRatio}%</span>
             </div>
             <div class="w-full bg-slate-100 rounded-full h-3">
-                <div class="bg-indigo-500 h-3 rounded-full transition-all" style="width: ${markedRatio}%"></div>
+                <div class="bg-green-500 h-3 rounded-full transition-all" style="width: ${learnedRatio}%"></div>
             </div>
         </div>
     `;
 
-    // 7-day trend section
+    // 7-day trend section (side-by-side bars: orange=需复习, green=已掌握)
     html += `<div class="mb-6">
-        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">近7天标记活动</h3>
+        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">近7天标记活动</h3>
+        <div class="flex gap-3 mb-2">
+            <span class="text-[9px] text-orange-500 font-bold">⚠️ 需复习</span>
+            <span class="text-[9px] text-green-500 font-bold">✅ 已掌握</span>
+        </div>
         <div class="flex gap-1" style="height: 72px; align-items: flex-end;">`;
     last7Days.forEach(day => {
-        const count = countsByDate[day] || 0;
-        const barH = count > 0 ? Math.max(4, Math.round((count / maxCount) * BAR_MAX_PX)) : 0;
+        const mc = markCountsByDate[day] || 0;
+        const lc = learnCountsByDate[day] || 0;
+        const mBarH = mc > 0 ? Math.max(4, Math.round((mc / maxCount) * BAR_MAX_PX)) : 0;
+        const lBarH = lc > 0 ? Math.max(4, Math.round((lc / maxCount) * BAR_MAX_PX)) : 0;
         const dayLabel = day.slice(5); // MM-DD
         html += `
             <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:72px;">
-                <div style="font-size:9px; font-weight:700; color:#6366f1; min-height:14px;">${count > 0 ? count : ''}</div>
-                <div style="width:100%; height:${barH}px; background:#6366f1; border-radius:3px 3px 0 0;"></div>
+                <div style="width:100%; display:flex; gap:1px; align-items:flex-end; justify-content:center;">
+                    ${mBarH > 0 ? `<div class="bg-orange-400 flex-1 rounded-t-sm" style="height:${mBarH}px;"></div>` : '<div class="flex-1"></div>'}
+                    ${lBarH > 0 ? `<div class="bg-green-500 flex-1 rounded-t-sm" style="height:${lBarH}px;"></div>` : '<div class="flex-1"></div>'}
+                </div>
                 <div style="font-size:9px; color:#94a3b8; margin-top:2px;">${dayLabel}</div>
             </div>`;
     });
@@ -135,17 +171,25 @@ function renderStats() {
     html += `<div>
         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">分类统计</h3>`;
     Object.entries(categoryStats)
-        .sort((a, b) => b[1].marked - a[1].marked)
+        .sort((a, b) => (b[1].marked + b[1].learned) - (a[1].marked + a[1].learned))
         .forEach(([cat, stats]) => {
-            const ratio = stats.total > 0 ? Math.round((stats.marked / stats.total) * 100) : 0;
+            const learnedRatioBar = stats.total > 0 ? Math.round((stats.learned / stats.total) * 100) : 0;
+            const markedRatioBar = stats.total > 0 ? Math.round((stats.marked / stats.total) * 100) : 0;
             html += `
                 <div class="mb-3">
                     <div class="flex justify-between text-[10px] font-bold mb-1">
                         <span class="text-slate-600 truncate mr-2">${cat}</span>
-                        <span class="text-orange-500 shrink-0">${stats.marked}/${stats.total}</span>
+                        <span class="shrink-0">
+                            <span class="text-orange-500">⚠️${stats.marked}</span>
+                            <span class="text-slate-300 mx-1">|</span>
+                            <span class="text-green-600">✅${stats.learned}</span>
+                            <span class="text-slate-300 mx-1">|</span>
+                            <span class="text-slate-400">${stats.total}</span>
+                        </span>
                     </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2">
-                        <div class="bg-orange-400 h-2 rounded-full transition-all" style="width: ${ratio}%"></div>
+                    <div class="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+                        <div class="bg-orange-400 h-2 transition-all" style="width: ${markedRatioBar}%;"></div>
+                        <div class="bg-green-500 h-2 transition-all" style="width: ${learnedRatioBar}%;"></div>
                     </div>
                 </div>`;
         });
@@ -319,7 +363,7 @@ function showCard(index) {
         speak(item.ja, 'ja-JP');
     }
 
-    updateMarkButton(item.ja);
+    updateWordButtons(item.ja);
     updateWordProgress();
 }
 
@@ -341,14 +385,25 @@ function showPrev() {
     showCard(prevIndex);
 }
 
-function updateMarkButton(jaWord) {
+function updateWordButtons(jaWord) {
     const marked = JSON.parse(localStorage.getItem('markedWords') || '[]');
+    const learned = JSON.parse(localStorage.getItem('learnedWords') || '[]');
     const isMarked = marked.includes(jaWord);
+    const isLearned = learned.includes(jaWord);
+
     const markBtn = document.getElementById('markBtn');
-    document.getElementById('markIcon').innerText = isMarked ? "✅" : "⚠️";
-    document.getElementById('markText').innerText = isMarked ? "LEARNED" : "MARK";
+    document.getElementById('markIcon').innerText = "⚠️";
+    document.getElementById('markText').innerText = isMarked ? "需复习 ✓" : "需复习";
     markBtn.classList.toggle('text-orange-500', isMarked);
-    markBtn.classList.toggle('border-orange-200', isMarked);
+    markBtn.classList.toggle('border-orange-400', isMarked);
+    markBtn.classList.toggle('bg-orange-50', isMarked);
+
+    const learnBtn = document.getElementById('learnBtn');
+    document.getElementById('learnIcon').innerText = "✅";
+    document.getElementById('learnText').innerText = isLearned ? "已掌握 ✓" : "已掌握";
+    learnBtn.classList.toggle('text-green-600', isLearned);
+    learnBtn.classList.toggle('border-green-400', isLearned);
+    learnBtn.classList.toggle('bg-green-50', isLearned);
 }
 
 function speak(text, lang) {
@@ -478,13 +533,37 @@ document.getElementById('markBtn').addEventListener('click', () => {
     if (filteredList.length === 0) return;
     const item = filteredList[currentIndex];
     let marked = JSON.parse(localStorage.getItem('markedWords') || '[]');
-    if (marked.includes(item.ja)) marked = marked.filter(w => w !== item.ja);
-    else {
+    let learned = JSON.parse(localStorage.getItem('learnedWords') || '[]');
+    if (marked.includes(item.ja)) {
+        marked = marked.filter(w => w !== item.ja);
+    } else {
         marked.push(item.ja);
+        // 互斥：从已掌握中移除
+        learned = learned.filter(w => w !== item.ja);
         recordMarkingEvent();
     }
     localStorage.setItem('markedWords', JSON.stringify(marked));
-    updateMarkButton(item.ja);
+    localStorage.setItem('learnedWords', JSON.stringify(learned));
+    updateWordButtons(item.ja);
+    if (reviewModeToggle.checked) updateFilter();
+});
+
+document.getElementById('learnBtn').addEventListener('click', () => {
+    if (filteredList.length === 0) return;
+    const item = filteredList[currentIndex];
+    let marked = JSON.parse(localStorage.getItem('markedWords') || '[]');
+    let learned = JSON.parse(localStorage.getItem('learnedWords') || '[]');
+    if (learned.includes(item.ja)) {
+        learned = learned.filter(w => w !== item.ja);
+    } else {
+        learned.push(item.ja);
+        // 互斥：从需复习中移除
+        marked = marked.filter(w => w !== item.ja);
+        recordLearningEvent();
+    }
+    localStorage.setItem('markedWords', JSON.stringify(marked));
+    localStorage.setItem('learnedWords', JSON.stringify(learned));
+    updateWordButtons(item.ja);
     if (reviewModeToggle.checked) updateFilter();
 });
 
@@ -527,6 +606,11 @@ document.addEventListener('keydown', (e) => {
         case 'M':
             e.preventDefault();
             document.getElementById('markBtn').click();
+            break;
+        case 'l':
+        case 'L':
+            e.preventDefault();
+            document.getElementById('learnBtn').click();
             break;
         case 'a':
         case 'A':
