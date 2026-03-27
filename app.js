@@ -19,6 +19,139 @@ const filtersContent = document.getElementById('filtersContent');
 const filtersToggle = document.getElementById('filtersToggle');
 const wordProgress = document.getElementById('wordProgress');
 
+// --- Stats helpers ---
+function getTodayStr() {
+    return new Date().toISOString().slice(0, 10);
+}
+
+function recordMarkingEvent() {
+    const dates = JSON.parse(localStorage.getItem('markingDates') || '[]');
+    dates.push(getTodayStr());
+    localStorage.setItem('markingDates', JSON.stringify(dates));
+}
+
+function getMarkingCountsByDate() {
+    const dates = JSON.parse(localStorage.getItem('markingDates') || '[]');
+    const counts = {};
+    dates.forEach(d => { counts[d] = (counts[d] || 0) + 1; });
+    return counts;
+}
+
+function getLast7Days() {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push(d.toISOString().slice(0, 10));
+    }
+    return days;
+}
+
+function renderStats() {
+    const marked = JSON.parse(localStorage.getItem('markedWords') || '[]');
+    const total = dictionary.length;
+    const markedCount = marked.length;
+    const markedRatio = total > 0 ? Math.round((markedCount / total) * 100) : 0;
+
+    // Category breakdown
+    const categoryStats = {};
+    dictionary.forEach(item => {
+        if (!categoryStats[item.category]) {
+            categoryStats[item.category] = { total: 0, marked: 0 };
+        }
+        categoryStats[item.category].total++;
+        if (marked.includes(item.ja)) {
+            categoryStats[item.category].marked++;
+        }
+    });
+
+    // 7-day trend
+    const countsByDate = getMarkingCountsByDate();
+    const last7Days = getLast7Days();
+    const maxCount = Math.max(...last7Days.map(d => countsByDate[d] || 0), 1);
+    const BAR_MAX_PX = 48;
+
+    // Overview section
+    let html = `
+        <div class="mb-6">
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">概览 (Overview)</h3>
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <div class="bg-indigo-50 rounded-xl p-3 text-center">
+                    <div class="text-2xl font-black text-indigo-600">${total}</div>
+                    <div class="text-[10px] font-bold text-slate-400 uppercase mt-1">总单词</div>
+                </div>
+                <div class="bg-orange-50 rounded-xl p-3 text-center">
+                    <div class="text-2xl font-black text-orange-500">${markedCount}</div>
+                    <div class="text-[10px] font-bold text-slate-400 uppercase mt-1">需复习</div>
+                </div>
+                <div class="bg-green-50 rounded-xl p-3 text-center">
+                    <div class="text-2xl font-black text-green-600">${total - markedCount}</div>
+                    <div class="text-[10px] font-bold text-slate-400 uppercase mt-1">待学习</div>
+                </div>
+            </div>
+            <div class="flex justify-between text-[10px] font-bold mb-1">
+                <span class="text-slate-500">复习进度</span>
+                <span class="text-indigo-600">${markedRatio}%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3">
+                <div class="bg-indigo-500 h-3 rounded-full transition-all" style="width: ${markedRatio}%"></div>
+            </div>
+        </div>
+    `;
+
+    // 7-day trend section
+    html += `<div class="mb-6">
+        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">近7天标记活动</h3>
+        <div class="flex gap-1" style="height: 72px; align-items: flex-end;">`;
+    last7Days.forEach(day => {
+        const count = countsByDate[day] || 0;
+        const barH = count > 0 ? Math.max(4, Math.round((count / maxCount) * BAR_MAX_PX)) : 0;
+        const dayLabel = day.slice(5); // MM-DD
+        html += `
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:72px;">
+                <div style="font-size:9px; font-weight:700; color:#6366f1; min-height:14px;">${count > 0 ? count : ''}</div>
+                <div style="width:100%; height:${barH}px; background:#6366f1; border-radius:3px 3px 0 0;"></div>
+                <div style="font-size:9px; color:#94a3b8; margin-top:2px;">${dayLabel}</div>
+            </div>`;
+    });
+    html += `</div></div>`;
+
+    // Category breakdown section
+    html += `<div>
+        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">分类统计</h3>`;
+    Object.entries(categoryStats)
+        .sort((a, b) => b[1].marked - a[1].marked)
+        .forEach(([cat, stats]) => {
+            const ratio = stats.total > 0 ? Math.round((stats.marked / stats.total) * 100) : 0;
+            html += `
+                <div class="mb-3">
+                    <div class="flex justify-between text-[10px] font-bold mb-1">
+                        <span class="text-slate-600 truncate mr-2">${cat}</span>
+                        <span class="text-orange-500 shrink-0">${stats.marked}/${stats.total}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-orange-400 h-2 rounded-full transition-all" style="width: ${ratio}%"></div>
+                    </div>
+                </div>`;
+        });
+    html += `</div>`;
+
+    document.getElementById('statsContent').innerHTML = html;
+}
+
+function openStats() {
+    renderStats();
+    const modal = document.getElementById('statsModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeStats() {
+    const modal = document.getElementById('statsModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
 // --- localStorage helpers ---
 function saveFilterState() {
     const selectedSrcs = Array.from(document.querySelectorAll('.src-filter:checked')).map(el => el.value);
@@ -295,10 +428,19 @@ document.getElementById('markBtn').addEventListener('click', () => {
     const item = filteredList[currentIndex];
     let marked = JSON.parse(localStorage.getItem('markedWords') || '[]');
     if (marked.includes(item.ja)) marked = marked.filter(w => w !== item.ja);
-    else marked.push(item.ja);
+    else {
+        marked.push(item.ja);
+        recordMarkingEvent();
+    }
     localStorage.setItem('markedWords', JSON.stringify(marked));
     updateMarkButton(item.ja);
     if (reviewModeToggle.checked) updateFilter();
+});
+
+document.getElementById('statsBtn').addEventListener('click', openStats);
+document.getElementById('closeStatsBtn').addEventListener('click', closeStats);
+document.getElementById('statsModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('statsModal')) closeStats();
 });
 
 init();
