@@ -30,11 +30,25 @@
                 <h1 class="text-3xl font-black text-indigo-600 tracking-tighter">code-vocabs</h1>
                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest" style="letter-spacing: 0.1em;">Programming Japanese</p>
             </div>
-            <select id="userType" class="bg-white border border-slate-200 text-[10px] font-bold rounded-lg px-2 py-1 outline-none focus:ring-2 ring-indigo-400">
-                <option value="ja-learner">🇨🇳 我在学日语 (Learning JA)</option>
-                <option value="zh-learner">🇯🇵 我在学中文 (Learning ZH)</option>
-            </select>
+            <div class="flex items-center gap-2">
+                <button id="statsBtn" class="bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 text-lg rounded-lg px-2 py-1 transition-colors" title="学习统计">📊</button>
+                <select id="userType" class="bg-white border border-slate-200 text-[10px] font-bold rounded-lg px-2 py-1 outline-none focus:ring-2 ring-indigo-400">
+                    <option value="ja-learner">🇨🇳 我在学日语 (Learning JA)</option>
+                    <option value="zh-learner">🇯🇵 我在学中文 (Learning ZH)</option>
+                </select>
+            </div>
         </header>
+
+        <!-- Stats Modal -->
+        <div id="statsModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+            <div class="bg-white rounded-2xl p-6 max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-black text-slate-800">学习统计 (Stats)</h2>
+                    <button id="closeStatsBtn" class="text-slate-400 hover:text-slate-600 font-black text-2xl leading-none">×</button>
+                </div>
+                <div id="statsContent"></div>
+            </div>
+        </div>
 
         <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 mb-6">
             <div class="flex justify-between items-center mb-2">
@@ -85,7 +99,7 @@
                         <p id="frontRead" class="text-slate-300 text-sm md:text-lg mb-2 min-h-[1.5rem] font-medium leading-tight px-4"></p>
                         <h2 id="frontText" class="text-3xl md:text-5xl font-bold text-slate-700 tracking-tight break-words px-4">----</h2>
                     </div>
-                    <p class="absolute bottom-6 text-[10px] font-bold text-slate-300 uppercase tracking-widest text-center w-full">点击翻面</p>
+                    <p class="absolute bottom-6 text-[10px] font-bold text-slate-300 uppercase tracking-widest text-center w-full">点击翻面 · 左右滑动切换</p>
                 </div>
                 <div class="card-back bg-indigo-600 shadow-xl border border-indigo-500 text-white font-bold">
                     <div class="text-center w-full">
@@ -113,5 +127,55 @@
     </div>
 
     <script src="app.js"></script>
+    <!-- 键盘快捷键与触摸手势提示 -->
+    <div class="max-w-xl mx-auto mt-4 mb-2 space-y-2">
+        <details class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <summary class="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest cursor-pointer select-none hover:text-indigo-500 transition-colors">⌨️ 键盘快捷键 (Keyboard Shortcuts)</summary>
+            <div class="px-5 pb-4 grid grid-cols-2 gap-2">
+                <div class="flex items-center gap-2">
+                    <kbd class="bg-slate-100 border border-slate-300 rounded px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600">→</kbd>
+                    <kbd class="bg-slate-100 border border-slate-300 rounded px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600">Space</kbd>
+                    <span class="text-[10px] text-slate-500">下一个</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <kbd class="bg-slate-100 border border-slate-300 rounded px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600">←</kbd>
+                    <span class="text-[10px] text-slate-500">上一个</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <kbd class="bg-slate-100 border border-slate-300 rounded px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600">Enter</kbd>
+                    <span class="text-[10px] text-slate-500">翻转卡片</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <kbd class="bg-slate-100 border border-slate-300 rounded px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600">M</kbd>
+                    <span class="text-[10px] text-slate-500">标记/取消标记</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <kbd class="bg-slate-100 border border-slate-300 rounded px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600">A</kbd>
+                    <span class="text-[10px] text-slate-500">自动播放切换</span>
+                </div>
+            </div>
+        </details>
+        <details class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <summary class="px-5 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest cursor-pointer select-none hover:text-indigo-500 transition-colors">👆 触摸手势 (Touch Gestures)</summary>
+            <div class="px-5 pb-4 grid grid-cols-2 gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">👈</span>
+                    <span class="text-[10px] text-slate-500">右滑 → 上一个</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-base">👉</span>
+                    <span class="text-[10px] text-slate-500">左滑 → 下一个</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-base">👆</span>
+                    <span class="text-[10px] text-slate-500">点击 → 翻转卡片</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-base">✋</span>
+                    <span class="text-[10px] text-slate-500">长按 → 标记/取消标记</span>
+                </div>
+            </div>
+        </details>
+    </div>
 </body>
 </html>
