@@ -112,10 +112,14 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-4 gap-3">
             <button id="markBtn" class="col-span-1 py-4 bg-white border border-slate-200 text-slate-400 font-black text-xs rounded-2xl transition-all flex flex-col items-center justify-center gap-1 group">
                 <span id="markIcon" class="text-xl group-hover:scale-110 transition-transform">⚠️</span>
-                <span id="markText">标记</span>
+                <span id="markText">需复习</span>
+            </button>
+            <button id="learnBtn" class="col-span-1 py-4 bg-white border border-slate-200 text-slate-400 font-black text-xs rounded-2xl transition-all flex flex-col items-center justify-center gap-1 group">
+                <span id="learnIcon" class="text-xl group-hover:scale-110 transition-transform">✅</span>
+                <span id="learnText">已掌握</span>
             </button>
             <button id="prevBtn" class="col-span-1 py-4 bg-white border-b-4 border-slate-200 text-slate-800 font-black rounded-2xl hover:translate-y-[2px] hover:border-b-2 active:translate-y-[4px] active:border-b-0 transition-all flex items-center justify-center gap-2">
                 <span class="text-indigo-500 mr-1">←</span> 上一个
@@ -147,7 +151,11 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <kbd class="bg-slate-100 border border-slate-300 rounded px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600">M</kbd>
-                    <span class="text-[10px] text-slate-500">标记/取消标记</span>
+                    <span class="text-[10px] text-slate-500">标记需复习/取消</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <kbd class="bg-slate-100 border border-slate-300 rounded px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600">L</kbd>
+                    <span class="text-[10px] text-slate-500">标记已掌握/取消</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <kbd class="bg-slate-100 border border-slate-300 rounded px-2 py-0.5 text-[10px] font-mono font-bold text-slate-600">A</kbd>
@@ -172,7 +180,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-base">✋</span>
-                    <span class="text-[10px] text-slate-500">长按 → 标记/取消标记</span>
+                    <span class="text-[10px] text-slate-500">长按 → 需复习/取消</span>
                 </div>
             </div>
         </details>
