@@ -9,6 +9,16 @@ let autoPlayTimeout = null;
 let isFlipped = false;
 let isFiltersPanelOpen = false;
 
+// タッチジェスチャー状態
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+let longPressTimer = null;
+let isTouchSwiping = false;
+const SWIPE_THRESHOLD = 50;
+const TOUCH_MOVE_THRESHOLD = 10;
+const LONG_PRESS_DURATION = 600;
+
 const cardInner = document.getElementById('cardInner');
 const autoPlayToggle = document.getElementById('autoPlayToggle');
 const sourceContainer = document.getElementById('sourceFilters');
@@ -25,8 +35,13 @@ function getTodayStr() {
 }
 
 function recordMarkingEvent() {
-    const dates = JSON.parse(localStorage.getItem('markingDates') || '[]');
-    dates.push(getTodayStr());
+    const today = getTodayStr();
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const dates = JSON.parse(localStorage.getItem('markingDates') || '[]')
+        .filter(d => d >= cutoffStr);
+    dates.push(today);
     localStorage.setItem('markingDates', JSON.stringify(dates));
 }
 
@@ -402,6 +417,7 @@ document.getElementById('prevBtn').addEventListener('click', () => {
 });
 
 cardInner.addEventListener('click', () => {
+    if (isTouchSwiping) return;
     if (autoPlayToggle.innerText === "STOP") stopAutoPlay();
     isFlipped = !isFlipped;
     cardInner.classList.toggle('is-flipped');
@@ -410,6 +426,41 @@ cardInner.addEventListener('click', () => {
     if (isFlipped) mode === 'ja-learner' ? speak(item.ja, 'ja-JP') : speak(item.zh, 'zh-CN');
     else mode === 'ja-learner' ? speak(item.zh, 'zh-CN') : speak(item.ja, 'ja-JP');
 });
+
+// タッチジェスチャー（スワイプ・長押し）
+cardInner.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+    isTouchSwiping = false;
+    longPressTimer = setTimeout(() => {
+        document.getElementById('markBtn').click();
+    }, LONG_PRESS_DURATION);
+}, { passive: true });
+
+cardInner.addEventListener('touchmove', (e) => {
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+    if (Math.abs(dx) > TOUCH_MOVE_THRESHOLD || Math.abs(dy) > TOUCH_MOVE_THRESHOLD) {
+        isTouchSwiping = true;
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+    }
+}, { passive: true });
+
+cardInner.addEventListener('touchend', (e) => {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+    if (!isTouchSwiping) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+        if (autoPlayToggle.innerText === 'STOP') stopAutoPlay();
+        if (dx > 0) showPrev();
+        else showNext();
+    }
+    isTouchSwiping = false;
+}, { passive: true });
 
 autoPlayToggle.addEventListener('click', () => {
     autoPlayToggle.innerText === "STOP" ? stopAutoPlay() : startAutoPlay();
