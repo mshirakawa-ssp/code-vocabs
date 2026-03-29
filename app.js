@@ -29,6 +29,125 @@ const filtersContent = document.getElementById('filtersContent');
 const filtersToggle = document.getElementById('filtersToggle');
 const wordProgress = document.getElementById('wordProgress');
 
+const CATEGORY_META = {
+    menu: {
+        label: 'Menu',
+        order: 1,
+        badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
+        chipCheckedClass: 'bg-sky-50 border-sky-400 text-sky-700',
+        chipUncheckedClass: 'bg-white border-slate-200 text-slate-500 hover:border-sky-200 hover:bg-sky-50/60',
+    },
+    terminal: {
+        label: 'Terminal',
+        order: 2,
+        badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+        chipCheckedClass: 'bg-amber-50 border-amber-400 text-amber-700',
+        chipUncheckedClass: 'bg-white border-slate-200 text-slate-500 hover:border-amber-200 hover:bg-amber-50/60',
+    },
+    explorer: {
+        label: 'Explorer',
+        order: 3,
+        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        chipCheckedClass: 'bg-emerald-50 border-emerald-400 text-emerald-700',
+        chipUncheckedClass: 'bg-white border-slate-200 text-slate-500 hover:border-emerald-200 hover:bg-emerald-50/60',
+    },
+    git: {
+        label: 'Git/SCM',
+        order: 4,
+        badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+        chipCheckedClass: 'bg-rose-50 border-rose-400 text-rose-700',
+        chipUncheckedClass: 'bg-white border-slate-200 text-slate-500 hover:border-rose-200 hover:bg-rose-50/60',
+    },
+    general: {
+        label: 'General',
+        order: 5,
+        badgeClass: 'bg-violet-50 text-violet-700 border-violet-200',
+        chipCheckedClass: 'bg-violet-50 border-violet-400 text-violet-700',
+        chipUncheckedClass: 'bg-white border-slate-200 text-slate-500 hover:border-violet-200 hover:bg-violet-50/60',
+    },
+    editor: {
+        label: 'Editor',
+        order: 6,
+        badgeClass: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+        chipCheckedClass: 'bg-cyan-50 border-cyan-400 text-cyan-700',
+        chipUncheckedClass: 'bg-white border-slate-200 text-slate-500 hover:border-cyan-200 hover:bg-cyan-50/60',
+    },
+    sidebar: {
+        label: 'Sidebar',
+        order: 7,
+        badgeClass: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
+        chipCheckedClass: 'bg-fuchsia-50 border-fuchsia-400 text-fuchsia-700',
+        chipUncheckedClass: 'bg-white border-slate-200 text-slate-500 hover:border-fuchsia-200 hover:bg-fuchsia-50/60',
+    },
+    debug: {
+        label: 'Debug',
+        order: 8,
+        badgeClass: 'bg-red-50 text-red-700 border-red-200',
+        chipCheckedClass: 'bg-red-50 border-red-400 text-red-700',
+        chipUncheckedClass: 'bg-white border-slate-200 text-slate-500 hover:border-red-200 hover:bg-red-50/60',
+    },
+    other: {
+        label: 'Other',
+        order: 99,
+        badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
+        chipCheckedClass: 'bg-slate-100 border-slate-400 text-slate-700',
+        chipUncheckedClass: 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50/60',
+    },
+};
+
+const RAW_CATEGORY_TO_KEY = {
+    '菜单 (Menu)': 'menu',
+    '终端 (Terminal)': 'terminal',
+    '资源管理器操作 (Explorer)': 'explorer',
+    '源代码管理 (SCM)': 'git',
+    '通用 (General)': 'general',
+    '编辑器 (Editor)': 'editor',
+    '侧边栏 (Sidebar)': 'sidebar',
+    '调试 (Debug)': 'debug',
+    '扩展 (Extension)': 'git',
+};
+
+function getCategoryKey(item) {
+    if (!item) return 'other';
+    return RAW_CATEGORY_TO_KEY[item.category] || 'other';
+}
+
+function getCategoryMeta(categoryKey) {
+    return CATEGORY_META[categoryKey] || CATEGORY_META.other;
+}
+
+function normalizeSavedCategorySelection(savedSelection) {
+    if (!savedSelection) return null;
+
+    const normalized = [...new Set(savedSelection.map(value => {
+        if (CATEGORY_META[value]) return value;
+        return RAW_CATEGORY_TO_KEY[value] || null;
+    }).filter(Boolean))];
+
+    return normalized.length > 0 ? normalized : null;
+}
+
+function applyCategoryBadge(categoryKey) {
+    const meta = getCategoryMeta(categoryKey);
+    const badge = document.getElementById('cardCategory');
+    badge.innerText = meta.label;
+    badge.className = `absolute top-4 left-6 px-2 py-0.5 text-[10px] font-black rounded uppercase tracking-widest border ${meta.badgeClass}`;
+}
+
+function applyFilterLabelState(label, key, value, checked) {
+    const baseClass = 'flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-black cursor-pointer transition-all select-none';
+
+    if (key === 'category') {
+        const meta = getCategoryMeta(value);
+        label.className = `${baseClass} ${checked ? meta.chipCheckedClass : meta.chipUncheckedClass}`;
+        return;
+    }
+
+    label.className = `${baseClass} bg-slate-50 border-slate-200 text-slate-500 hover:bg-indigo-50`;
+    label.classList.toggle('border-indigo-500', checked);
+    label.classList.toggle('text-indigo-600', checked);
+}
+
 // --- Stats helpers ---
 function getTodayStr() {
     return new Date().toISOString().slice(0, 10);
@@ -92,12 +211,13 @@ function renderStats() {
     // Category breakdown
     const categoryStats = {};
     dictionary.forEach(item => {
-        if (!categoryStats[item.category]) {
-            categoryStats[item.category] = { total: 0, marked: 0, learned: 0 };
+        const categoryKey = getCategoryKey(item);
+        if (!categoryStats[categoryKey]) {
+            categoryStats[categoryKey] = { total: 0, marked: 0, learned: 0 };
         }
-        categoryStats[item.category].total++;
-        if (marked.includes(item.ja)) categoryStats[item.category].marked++;
-        if (learned.includes(item.ja)) categoryStats[item.category].learned++;
+        categoryStats[categoryKey].total++;
+        if (marked.includes(item.ja)) categoryStats[categoryKey].marked++;
+        if (learned.includes(item.ja)) categoryStats[categoryKey].learned++;
     });
 
     // 7-day trend
@@ -171,14 +291,15 @@ function renderStats() {
     html += `<div>
         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">分类统计</h3>`;
     Object.entries(categoryStats)
-        .sort((a, b) => (b[1].marked + b[1].learned) - (a[1].marked + a[1].learned))
+        .sort((a, b) => getCategoryMeta(a[0]).order - getCategoryMeta(b[0]).order)
         .forEach(([cat, stats]) => {
+            const meta = getCategoryMeta(cat);
             const learnedRatioBar = stats.total > 0 ? Math.round((stats.learned / stats.total) * 100) : 0;
             const markedRatioBar = stats.total > 0 ? Math.round((stats.marked / stats.total) * 100) : 0;
             html += `
                 <div class="mb-3">
                     <div class="flex justify-between text-[10px] font-bold mb-1">
-                        <span class="text-slate-600 truncate mr-2">${cat}</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full border ${meta.badgeClass}">${meta.label}</span>
                         <span class="shrink-0">
                             <span class="text-orange-500">⚠️${stats.marked}</span>
                             <span class="text-slate-300 mx-1">|</span>
@@ -230,7 +351,7 @@ function loadSelectedSources() {
 
 function loadSelectedCategories() {
     const saved = localStorage.getItem('selectedCategories');
-    return saved ? JSON.parse(saved) : null;
+    return saved ? normalizeSavedCategorySelection(JSON.parse(saved)) : null;
 }
 
 function loadCurrentIndex() {
@@ -291,20 +412,21 @@ async function init() {
 
 // フィルタUIの動的作成用共通関数
 function createFilters(key, container, className, savedSelection) {
-    const values = [...new Set(dictionary.map(item => item[key]))];
+    const values = key === 'category'
+        ? [...new Set(dictionary.map(item => getCategoryKey(item)))].sort((a, b) => getCategoryMeta(a).order - getCategoryMeta(b).order)
+        : [...new Set(dictionary.map(item => item[key]))];
     container.innerHTML = '';
     values.forEach(val => {
         const isChecked = savedSelection ? savedSelection.includes(val) : true;
         const label = document.createElement('label');
-        label.className = "flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-[10px] font-black cursor-pointer hover:bg-indigo-50 transition-all select-none";
-        if (isChecked) label.classList.add('border-indigo-500', 'text-indigo-600');
-        label.innerHTML = `<input type="checkbox" class="${className}" value="${val}" ${isChecked ? 'checked' : ''}> ${val.toUpperCase()}`;
+        const displayText = key === 'category' ? getCategoryMeta(val).label : val.toUpperCase();
+        label.innerHTML = `<input type="checkbox" class="${className}" value="${val}" ${isChecked ? 'checked' : ''}> ${displayText}`;
+        applyFilterLabelState(label, key, val, isChecked);
         container.appendChild(label);
         
         label.querySelector('input').addEventListener('change', (e) => {
             const checked = e.target.checked;
-            label.classList.toggle('border-indigo-500', checked);
-            label.classList.toggle('text-indigo-600', checked);
+            applyFilterLabelState(label, key, val, checked);
             saveFilterState();
             updateFilter();
             currentIndex = -1;
@@ -321,7 +443,7 @@ function updateFilter() {
 
     filteredList = dictionary.filter(item => {
         const srcMatch = selectedSrcs.includes(item.source);
-        const catMatch = selectedCats.includes(item.category);
+        const catMatch = selectedCats.includes(getCategoryKey(item));
         const baseMatch = srcMatch && catMatch;
         return isReviewMode ? (baseMatch && marked.includes(item.ja)) : baseMatch;
     });
@@ -347,7 +469,7 @@ function showCard(index) {
     const item = filteredList[currentIndex];
     const mode = userTypeSelect.value;
 
-    document.getElementById('cardCategory').innerText = item.category;
+    applyCategoryBadge(getCategoryKey(item));
 
     if (mode === 'ja-learner') {
         document.getElementById('frontRead').innerText = item.pinyin;
