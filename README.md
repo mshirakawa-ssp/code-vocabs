@@ -1,7 +1,8 @@
 # code-vocabs
 
 这个工具可以帮助程序员学习IT单词。
-我们从VS Code的翻译文件中提取单词。
+我们从 VS Code 的翻译文件中提取单词。
+如果本机安装了 VS Code 的日语 / 简体中文语言包，生成脚本也会自动读取其中的 Git 扩展翻译。
 
 ## 功能 (Features)
 
@@ -31,7 +32,8 @@
     ```
 
 2.  **生成数据**:
-    把 `ja.json` 和 `ch.json` 放在 `data/raw/` 文件夹。
+    把 `ja.json` 和 `zh.json` 放在 `data/raw/` 文件夹。
+    如果本机安装了 VS Code 日语和简体中文语言包，脚本会自动补充 Git 扩展词汇。
     运行：
     ```bash
     python scripts/generate_dict.py

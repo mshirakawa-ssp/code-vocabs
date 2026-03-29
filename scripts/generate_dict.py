@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import re
@@ -9,13 +10,12 @@ RAW_DATA_DIR = "data/raw"
 OUTPUT_FILE = "data/dictionary.json"
 JA_FILE = os.path.join(RAW_DATA_DIR, "ja.json")
 ZH_FILE = os.path.join(RAW_DATA_DIR, "zh.json")
-MAX_TERM_LENGTH = 10
-MAX_SPACE_SEPARATED_WORDS = 5
+MAX_TERM_LENGTH = 24
+MAX_SPACE_SEPARATED_WORDS = 6
 EXCLUDED_KEY_TOKENS = (
     "color",
     "theme",
     "configuration",
-    "setting",
     "icon",
     "telemetry",
     "accessibilitysignal",
@@ -26,24 +26,245 @@ EXCLUDED_KEY_TOKENS = (
     "keybindinglabels",
     "speechlanguage",
 )
+ACTIONABLE_UI_PATH_PREFIXES = (
+    "vs/platform/menubar/",
+    "vs/workbench/browser/actions/helpActions",
+    "vs/workbench/browser/actions/workspaceActions",
+    "vs/workbench/contrib/preferences/browser/preferences.contribution",
+    "vs/workbench/contrib/terminal/browser/terminal.contribution",
+    "vs/workbench/contrib/terminal/browser/terminalMenus",
+    "vs/workbench/contrib/externalTerminal/browser/externalTerminal.contribution",
+    "vs/workbench/contrib/externalTerminal/electron-browser/externalTerminal.contribution",
+    "vs/workbench/contrib/files/browser/fileActions",
+    "vs/workbench/contrib/files/browser/views/explorerView",
+    "vs/workbench/contrib/files/electron-browser/fileActions.contribution",
+    "extensions/vscode.git/package",
+    "extensions/vscode.git-base/package",
+)
+ACTIONABLE_UI_EXCLUDED_KEY_TOKENS = (
+    "accessibility",
+    "aria",
+    "background",
+    "badge",
+    "border",
+    "category",
+    "color",
+    "config",
+    "configuration",
+    "confirm",
+    "count",
+    "decorations",
+    "description",
+    "detail",
+    "enabled",
+    "error",
+    "foreground",
+    "icon",
+    "metadata",
+    "placeholder",
+    "status",
+    "titlebar",
+    "tooltip",
+    "visible",
+    "warning",
+)
+EXPLORER_FILE_ACTION_KEYS = {
+    "copyfile",
+    "download",
+    "newfile",
+    "newfolder",
+    "pastefile",
+    "upload",
+}
+EXPLORER_CONTRIBUTION_KEYS = {
+    "copypath",
+    "copypathofactive",
+    "copyrelativepath",
+    "copyrelativepathofactive",
+    "cut",
+    "deletefile",
+    "exploreropenwith",
+    "misave",
+    "misaveas",
+    "newfile",
+    "opentoside",
+    "revert",
+    "revertlocalchanges",
+    "saveall",
+    "savefiles",
+}
+EXPLORER_VIEW_KEYS = {
+    "collapseexplorerfolders",
+    "refreshexplorer",
+}
+EXPLORER_ELECTRON_KEYS = {
+    "mishare",
+    "opencontainer",
+}
+GIT_MENU_KEYS = {
+    "command.addremote",
+    "command.branch",
+    "command.branchfrom",
+    "command.checkout",
+    "command.checkoutdetached",
+    "command.cherrypick",
+    "command.cherrypickabort",
+    "command.clean",
+    "command.cleanall",
+    "command.cleanalltracked",
+    "command.cleanalluntracked",
+    "command.clone",
+    "command.clonerecursive",
+    "command.commit",
+    "command.commitall",
+    "command.commitallamend",
+    "command.commitallamendnoverify",
+    "command.commitallnoverify",
+    "command.commitallsignednoverify",
+    "command.commitamend",
+    "command.commitamendnoverify",
+    "command.commitempty",
+    "command.commitemptynoverify",
+    "command.commitnoverify",
+    "command.commitsigned",
+    "command.commitsignednoverify",
+    "command.commitstaged",
+    "command.commitstagedamend",
+    "command.commitstagedamendnoverify",
+    "command.commitstagednoverify",
+    "command.commitstagedsigned",
+    "command.createfrom",
+    "command.createtag",
+    "command.delete",
+    "command.deletebranch",
+    "command.deleteremotebranch",
+    "command.deleteremotetag",
+    "command.deletetag",
+    "command.fetch",
+    "command.fetchall",
+    "command.init",
+    "command.merge",
+    "command.mergeabort",
+    "command.openchange",
+    "command.openfile",
+    "command.publish",
+    "command.pull",
+    "command.pullfrom",
+    "command.pullrebase",
+    "command.push",
+    "command.pushfollowtags",
+    "command.pushfollowtagsforce",
+    "command.pushforce",
+    "command.pushtags",
+    "command.pushto",
+    "command.pushtoforce",
+    "command.rebase",
+    "command.rebase2",
+    "command.rebaseabort",
+    "command.refresh",
+    "command.removeremote",
+    "command.rename",
+    "command.renamebranch",
+    "command.revealinexplorer",
+    "command.revertchange",
+    "command.revertselectedranges",
+    "command.stage",
+    "command.stageall",
+    "command.stageallmerge",
+    "command.stagealltracked",
+    "command.stagealluntracked",
+    "command.stageblock",
+    "command.stagechange",
+    "command.stageselectedranges",
+    "command.stageselection",
+    "command.stash",
+    "command.stashapply",
+    "command.stashapplylatest",
+    "command.stashdrop",
+    "command.stashdropall",
+    "command.stashincludeuntracked",
+    "command.stashpop",
+    "command.stashpoplatest",
+    "command.stashstaged",
+    "command.sync",
+    "command.undocommit",
+    "command.unstage",
+    "command.unstageall",
+    "command.unstagechange",
+    "command.unstageselectedranges",
+    "submenu.branch",
+    "submenu.changes",
+    "submenu.remote",
+    "submenu.stash",
+    "submenu.tags",
+}
 LOW_VALUE_STATE_WORDS = {
     "現在", "既定", "既定値", "既定の", "進行中", "完了", "無効", "有効", "表示中", "読み込み中",
     "ローカル", "メイン", "空", "標準", "既存", "最近", "詳細情報", "アクティブ", "プレビュー", "モード",
     "形式", "種類", "名前", "タイトル", "パス", "ビュー", "セクション", "グループ", "パネル", "メニュー",
     "エディター", "ターミナル", "拡張機能", "言語モデル", "ワークスペース", "プロファイル",
 }
-SHORT_ACTION_ALLOWLIST = {
-    "開く", "閉じる", "保存", "コピー", "貼り付け", "切り取り", "元に戻す", "やり直し",
-    "検索", "置換", "実行", "停止", "開始", "更新", "削除", "追加", "選択", "移動",
-    "戻る", "進む", "承諾", "拒否", "共有", "表示", "非表示", "折りたたみ", "展開",
-}
-ACTION_PHRASE_PATTERNS = (
-    r".+を.+(する|します|した|して)$",
-    r".+(に|へ)移動$",
-    r".+(を)?(表示|切り替え|選択|開く|閉じる|保存|実行|開始|停止|追加|削除|コピー|貼り付け|並べ替え|検索|折りたたみ|展開)$",
-)
 
 kks = pykakasi.kakasi()
+
+LANGUAGE_PACK_ROOTS = (
+    os.path.join(os.path.expanduser("~"), ".vscode", "extensions"),
+    os.path.join(os.path.expanduser("~"), ".vscode-insiders", "extensions"),
+)
+GIT_LANGUAGE_PACK_EXTENSIONS = (
+    "vscode.git",
+    "vscode.git-base",
+)
+
+def load_core_contents(file_path):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        raw = json.load(f)
+    return raw.get("contents", {})
+
+def find_latest_language_pack_translation(locale, extension_name):
+    matches = []
+    for root in LANGUAGE_PACK_ROOTS:
+        pattern = os.path.join(
+            root,
+            f"ms-ceintl.vscode-language-pack-{locale}-*",
+            "translations",
+            "extensions",
+            f"{extension_name}.i18n.json",
+        )
+        matches.extend(glob.glob(pattern))
+
+    if not matches:
+        return None
+
+    return sorted(matches)[-1]
+
+def load_extension_contents(file_path, extension_name):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        raw = json.load(f)
+
+    contents = raw.get("contents", {})
+    normalized = {}
+    for section_name, items in contents.items():
+        if isinstance(items, dict):
+            normalized[f"extensions/{extension_name}/{section_name}"] = items
+
+    return normalized
+
+def load_optional_git_extension_contents():
+    ja_contents = {}
+    zh_contents = {}
+
+    for extension_name in GIT_LANGUAGE_PACK_EXTENSIONS:
+        ja_file = find_latest_language_pack_translation("ja", extension_name)
+        zh_file = find_latest_language_pack_translation("zh-hans", extension_name)
+
+        if not ja_file or not zh_file:
+            continue
+
+        ja_contents.update(load_extension_contents(ja_file, extension_name))
+        zh_contents.update(load_extension_contents(zh_file, extension_name))
+
+    return ja_contents, zh_contents
 
 def normalize_whitespace(text):
     text = text.replace('\u3000', ' ')
@@ -113,6 +334,85 @@ def is_latin_only_term(text):
 def contains_latin_letters(text):
     return bool(re.search(r'[A-Za-z]', text))
 
+def is_actionable_ui_path(path):
+    path_lower = path.lower()
+    return any(path_lower.startswith(prefix.lower()) for prefix in ACTIONABLE_UI_PATH_PREFIXES)
+
+def is_actionable_ui_key(path, key):
+    key_lower = key.lower()
+    path_lower = path.lower()
+
+    if any(token in key_lower for token in ACTIONABLE_UI_EXCLUDED_KEY_TOKENS):
+        return False
+
+    if path_lower.startswith("vs/platform/menubar/"):
+        return key.startswith(("m", "mi")) or key_lower in {
+            "newwindow",
+            "openrecent",
+            "reloadwindow",
+            "togglefullscreen",
+        }
+
+    if path_lower.startswith("vs/workbench/browser/actions/helpactions"):
+        return key.startswith("mi")
+
+    if path_lower.startswith("vs/workbench/browser/actions/workspaceactions"):
+        return key.startswith("mi") or key_lower in {
+            "closeworkspace",
+            "duplicateworkspace",
+            "duplicateworkspaceinnewwindow",
+            "globalremovefolderfromworkspace",
+            "openfile",
+            "openfolder",
+            "workspaces",
+        }
+
+    if path_lower.startswith("vs/workbench/contrib/preferences/browser/preferences.contribution"):
+        return key_lower in {
+            "settings",
+            "mipreferences",
+            "keyboardshortcuts",
+            "miopenonlinesettings",
+            "openfoldersettings",
+            "openglobalkeybindings",
+            "openglobalsettings",
+            "openremotesettings",
+            "openworkspacesettings",
+        }
+
+    if path_lower.startswith("vs/workbench/contrib/terminal/browser/terminal.contribution"):
+        return key_lower in {"mitoggleintegratedterminal", "terminal"}
+
+    if path_lower.startswith("vs/workbench/contrib/terminal/browser/terminalmenus"):
+        return key.startswith("mi") or key.startswith("workbench.action.") or key_lower in {
+            "defaultterminalprofile",
+            "launchprofile",
+            "split.profile",
+        }
+
+    if path_lower.startswith("vs/workbench/contrib/externalterminal/browser/externalterminal.contribution"):
+        return key_lower in {"scopedconsoleaction.integrated", "scopedconsoleaction.external"}
+
+    if path_lower.startswith("vs/workbench/contrib/externalterminal/electron-browser/externalterminal.contribution"):
+        return key_lower in {"globalconsoleaction"}
+
+    if path_lower.startswith(("extensions/vscode.git/package", "extensions/vscode.git-base/package")):
+        return key_lower in GIT_MENU_KEYS
+
+    if path_lower.startswith("vs/workbench/contrib/files/browser/fileactions"):
+        return key_lower in EXPLORER_FILE_ACTION_KEYS
+
+    if path_lower.startswith("vs/workbench/contrib/files/browser/views/explorerview"):
+        return key_lower in EXPLORER_VIEW_KEYS
+
+    if path_lower.startswith("vs/workbench/contrib/files/electron-browser/fileactions.contribution"):
+        return key_lower in EXPLORER_ELECTRON_KEYS
+
+    if path_lower.startswith("vs/workbench/contrib/files/browser/fileactions.contribution"):
+        return key_lower in EXPLORER_CONTRIBUTION_KEYS
+
+    return True
+
 def is_learning_term(text, original_text):
     """単語学習向けに短く意味のあるラベルだけを残す"""
     has_placeholder = bool(re.search(r'\{\d+\}|%\d+|\$\{?\d+\}?', original_text))
@@ -154,6 +454,9 @@ def is_low_learning_value(full_key, text):
     if any(token in key_lower for token in EXCLUDED_KEY_TOKENS):
         return True
 
+    if is_actionable_ui_path(full_key.rsplit('/', 1)[0]):
+        return False
+
     if text in LOW_VALUE_STATE_WORDS:
         return True
 
@@ -163,10 +466,7 @@ def is_low_learning_value(full_key, text):
     if len(text) <= 3 and "通用 (General)" in get_location_hint(full_key):
         return True
 
-    if text in SHORT_ACTION_ALLOWLIST:
-        return False
-
-    return any(re.fullmatch(pattern, text) for pattern in ACTION_PHRASE_PATTERNS)
+    return False
 
 def score_entry(entry):
     return (
@@ -190,6 +490,8 @@ def get_kana(text):
 def get_location_hint(key):
     """キー名からUI上の場所を推測"""
     key_lower = key.lower()
+    if "scm" in key_lower: return "源代码管理 (SCM)"
+    if "explorer" in key_lower or "/files/" in key_lower: return "资源管理器操作 (Explorer)"
     if "menu" in key_lower: return "菜单 (Menu)"
     if "view" in key_lower or "sidebar" in key_lower: return "侧边栏 (Sidebar)"
     if "terminal" in key_lower: return "终端 (Terminal)"
@@ -198,21 +500,26 @@ def get_location_hint(key):
     if "extension" in key_lower: return "扩展 (Extension)"
     return "通用 (General)"
 
-def is_important_ui(key, value):
-    """一軍の単語かどうかを判定"""
+def is_important_ui(path, key, value):
+    """操作に直結するメニュー項目・コンテキストメニューを優先する"""
+    if not is_actionable_ui_path(path):
+        return False
+    if not is_actionable_ui_key(path, key):
+        return False
     if re.search(r'[\r\n]', value):
         return False
     if re.search(r'https?://|www\.|<[^>]+>|`', value):
         return False
-    # ショートカットキー指定があるものはUI確定
-    if '&&' in value: return True
-    # 短いラベル
-    if len(clean_text(value)) <= 10: return True
-    # 特定のキーワード
-    important_suffixes = ('.label', '.title', '.name', '.caption', 'Label', 'Title', 'Name')
-    if any(key.endswith(s) for s in important_suffixes): return True
-    if "menu" in key.lower(): return True
-    return False
+
+    text = clean_text(value)
+    if not text:
+        return False
+    if len(text) > MAX_TERM_LENGTH:
+        return False
+    if re.search(r'[。！？!?]', text):
+        return False
+
+    return True
 
 def generate():
     if not os.path.exists(JA_FILE) or not os.path.exists(ZH_FILE):
@@ -220,13 +527,19 @@ def generate():
         return
 
     print("データを読み込み中...")
-    with open(JA_FILE, 'r', encoding='utf-8') as f:
-        ja_raw = json.load(f)
-    with open(ZH_FILE, 'r', encoding='utf-8') as f:
-        zh_raw = json.load(f)
+    core_ja_contents = load_core_contents(JA_FILE)
+    core_zh_contents = load_core_contents(ZH_FILE)
 
-    ja_contents = ja_raw.get("contents", {})
-    zh_contents = zh_raw.get("contents", {})
+    datasets = [
+        ("vscode", core_ja_contents, core_zh_contents),
+    ]
+
+    git_ja_contents, git_zh_contents = load_optional_git_extension_contents()
+    if git_ja_contents and git_zh_contents:
+        datasets.append(("vscode-git", git_ja_contents, git_zh_contents))
+        print("Git 言語パックも読み込みました。")
+    else:
+        print("Git 言語パックは見つからなかったため、コア翻訳のみで生成します。")
 
     best_entries = {}
     skipped_long_or_noisy = 0
@@ -234,55 +547,56 @@ def generate():
     skipped_low_learning_value = 0
 
     print("変換を開始します (強化クレンジング + 重複統合)...")
-    
-    for path, ja_items in ja_contents.items():
-        zh_items = zh_contents.get(path, {})
+
+    for source_name, ja_contents, zh_contents in datasets:
+        for path, ja_items in ja_contents.items():
+            zh_items = zh_contents.get(path, {})
         
-        for key, ja_val in ja_items.items():
-            if key in zh_items:
-                zh_val = zh_items[key]
-                
-                if not is_important_ui(key, ja_val):
-                    continue
+            for key, ja_val in ja_items.items():
+                if key in zh_items:
+                    zh_val = zh_items[key]
 
-                ja_clean = clean_text(ja_val)
-                zh_clean = clean_text(zh_val)
+                    if not is_important_ui(path, key, ja_val):
+                        continue
 
-                if not is_learning_term(ja_clean, ja_val) or not is_learning_term(zh_clean, zh_val):
-                    skipped_long_or_noisy += 1
-                    continue
+                    ja_clean = clean_text(ja_val)
+                    zh_clean = clean_text(zh_val)
 
-                canonical_ja = normalize_for_dedupe(ja_clean)
-                canonical_zh = normalize_for_dedupe(zh_clean)
+                    if not is_learning_term(ja_clean, ja_val) or not is_learning_term(zh_clean, zh_val):
+                        skipped_long_or_noisy += 1
+                        continue
 
-                if not canonical_ja or not canonical_zh:
-                    continue
+                    canonical_ja = normalize_for_dedupe(ja_clean)
+                    canonical_zh = normalize_for_dedupe(zh_clean)
 
-                full_key = f"{path}/{key}"
+                    if not canonical_ja or not canonical_zh:
+                        continue
 
-                if is_low_learning_value(full_key, ja_clean):
-                    skipped_low_learning_value += 1
-                    continue
+                    full_key = f"{path}/{key}"
 
-                entry = {
-                    "ja": ja_clean,
-                    "ja_read": get_kana(ja_clean),
-                    "zh": zh_clean,
-                    "pinyin": get_pinyin(zh_clean),
-                    "category": get_location_hint(full_key),
-                    "source": "vscode",
-                    "key": full_key
-                }
-                candidate_score = score_entry(entry)
-                existing = best_entries.get(canonical_ja)
+                    if is_low_learning_value(full_key, ja_clean):
+                        skipped_low_learning_value += 1
+                        continue
 
-                if existing is None or candidate_score < existing["score"]:
-                    if existing is not None:
-                        duplicate_updates += 1
-                    best_entries[canonical_ja] = {
-                        "entry": entry,
-                        "score": candidate_score,
+                    entry = {
+                        "ja": ja_clean,
+                        "ja_read": get_kana(ja_clean),
+                        "zh": zh_clean,
+                        "pinyin": get_pinyin(zh_clean),
+                        "category": get_location_hint(full_key),
+                        "source": source_name,
+                        "key": full_key
                     }
+                    candidate_score = score_entry(entry)
+                    existing = best_entries.get(canonical_ja)
+
+                    if existing is None or candidate_score < existing["score"]:
+                        if existing is not None:
+                            duplicate_updates += 1
+                        best_entries[canonical_ja] = {
+                            "entry": entry,
+                            "score": candidate_score,
+                        }
 
     dictionary = [item["entry"] for item in best_entries.values()]
 
