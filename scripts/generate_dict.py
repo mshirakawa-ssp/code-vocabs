@@ -297,6 +297,17 @@ def remove_unbalanced_brackets(text):
 
     return normalize_whitespace(text)
 
+def strip_trailing_parenthetical_suffix(text):
+    stripped = text.strip()
+
+    while True:
+        updated = re.sub(r'\s*[（(][^（）()]+[）)]\s*$', '', stripped).strip()
+        if updated == stripped or not updated:
+            break
+        stripped = updated
+
+    return stripped
+
 def clean_text(text):
     """UI ラベルに不要なノイズを取り除き、比較しやすい形に整える"""
     if not text:
@@ -321,6 +332,7 @@ def clean_text(text):
     text = re.sub(r'\s*[:：]\s*$', '', text)
     text = text.strip('、。,.:：;；!?！？…･・/／|｜-−_"\' ')
     text = strip_wrapping_brackets(text)
+    text = strip_trailing_parenthetical_suffix(text)
     return normalize_whitespace(text)
 
 def normalize_for_dedupe(text):
@@ -598,7 +610,18 @@ def generate():
                             "score": candidate_score,
                         }
 
-    dictionary = [item["entry"] for item in best_entries.values()]
+    best_entries_by_zh = {}
+    for item in best_entries.values():
+        entry = item["entry"]
+        canonical_zh = normalize_for_dedupe(entry["zh"])
+        existing = best_entries_by_zh.get(canonical_zh)
+
+        if existing is None or item["score"] < existing["score"]:
+            if existing is not None:
+                duplicate_updates += 1
+            best_entries_by_zh[canonical_zh] = item
+
+    dictionary = [item["entry"] for item in best_entries_by_zh.values()]
 
     os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:

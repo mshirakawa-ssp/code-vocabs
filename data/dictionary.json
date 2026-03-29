@@ -585,15 +585,6 @@
     "key": "vs/workbench/contrib/preferences/browser/preferences.contribution/miOpenOnlineSettings"
   },
   {
-    "ja": "ユーザー設定",
-    "ja_read": "ユーザーセッテイ",
-    "zh": "首选项",
-    "pinyin": "shǒu xuǎn xiàng",
-    "category": "通用 (General)",
-    "source": "vscode",
-    "key": "vs/workbench/contrib/preferences/browser/preferences.contribution/miPreferences"
-  },
-  {
     "ja": "フォルダーの設定を開く",
     "ja_read": "フォルダーノセッテイヲヒラク",
     "zh": "打开文件夹设置",
@@ -864,15 +855,6 @@
     "key": "extensions/vscode.git/package/command.checkout"
   },
   {
-    "ja": "チェックアウト先 (デタッチ済み)",
-    "ja_read": "チェックアウトサキ (デタッチスミ)",
-    "zh": "签出到(已分离)",
-    "pinyin": "qiān chū dào ( yǐ fēn lí )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.checkoutDetached"
-  },
-  {
     "ja": "チェリーピック",
     "ja_read": "チェリーピック",
     "zh": "挑拣",
@@ -927,19 +909,10 @@
     "key": "extensions/vscode.git/package/command.cleanAllUntracked"
   },
   {
-    "ja": "クローン",
-    "ja_read": "クローン",
+    "ja": "複製",
+    "ja_read": "フクセイ",
     "zh": "克隆",
     "pinyin": "kè lóng",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.clone"
-  },
-  {
-    "ja": "複製 (再帰)",
-    "ja_read": "フクセイ (サイキ)",
-    "zh": "克隆(递归)",
-    "pinyin": "kè lóng ( dì guī )",
     "category": "扩展 (Extension)",
     "source": "vscode-git",
     "key": "extensions/vscode.git/package/command.cloneRecursive"
@@ -963,148 +936,22 @@
     "key": "extensions/vscode.git/package/command.commitAll"
   },
   {
-    "ja": "すべてコミット (修正)",
-    "ja_read": "スベテコミット (シュウセイ)",
-    "zh": "全部提交(修改)",
-    "pinyin": "quán bù tí jiāo ( xiū gǎi )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitAllAmend"
-  },
-  {
-    "ja": "すべてコミット (修正、確認なし)",
-    "ja_read": "スベテコミット (シュウセイ、カクニンナシ)",
-    "zh": "全部提交(修正，不验证)",
-    "pinyin": "quán bù tí jiāo ( xiū zhèng ， bù yàn zhèng )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitAllAmendNoVerify"
-  },
-  {
-    "ja": "すべてコミット (確認なし)",
-    "ja_read": "スベテコミット (カクニンナシ)",
-    "zh": "全部提交(不验证)",
-    "pinyin": "quán bù tí jiāo ( bù yàn zhèng )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitAllNoVerify"
-  },
-  {
-    "ja": "すべてコミット (サインオフ、確認なし)",
-    "ja_read": "スベテコミット (サインオフ、カクニンナシ)",
-    "zh": "全部提交(已签收，不验证)",
-    "pinyin": "quán bù tí jiāo ( yǐ qiān shōu ， bù yàn zhèng )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitAllSignedNoVerify"
-  },
-  {
-    "ja": "コミット (修正)",
-    "ja_read": "コミット (シュウセイ)",
-    "zh": "提交(修改)",
-    "pinyin": "tí jiāo ( xiū gǎi )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitAmend"
-  },
-  {
-    "ja": "コミット (修正、確認なし)",
-    "ja_read": "コミット (シュウセイ、カクニンナシ)",
-    "zh": "提交(修改，不验证)",
-    "pinyin": "tí jiāo ( xiū gǎi ， bù yàn zhèng )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitAmendNoVerify"
-  },
-  {
     "ja": "空のコミット",
     "ja_read": "ソラノコミット",
-    "zh": "创建空提交",
-    "pinyin": "chuàng jiàn kōng tí jiāo",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitEmpty"
-  },
-  {
-    "ja": "空のコミット (確認なし)",
-    "ja_read": "ソラノコミット (カクニンナシ)",
-    "zh": "空提交(不验证)",
-    "pinyin": "kōng tí jiāo ( bù yàn zhèng )",
+    "zh": "空提交",
+    "pinyin": "kōng tí jiāo",
     "category": "扩展 (Extension)",
     "source": "vscode-git",
     "key": "extensions/vscode.git/package/command.commitEmptyNoVerify"
   },
   {
-    "ja": "コミット (確認なし)",
-    "ja_read": "コミット (カクニンナシ)",
-    "zh": "提交(不验证)",
-    "pinyin": "tí jiāo ( bù yàn zhèng )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitNoVerify"
-  },
-  {
-    "ja": "コミット (サインオフ)",
-    "ja_read": "コミット (サインオフ)",
-    "zh": "提交(已签收)",
-    "pinyin": "tí jiāo ( yǐ qiān shōu )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitSigned"
-  },
-  {
-    "ja": "コミット (サインオフ、確認なし)",
-    "ja_read": "コミット (サインオフ、カクニンナシ)",
-    "zh": "提交(已签收，不验证)",
-    "pinyin": "tí jiāo ( yǐ qiān shōu ， bù yàn zhèng )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitSignedNoVerify"
-  },
-  {
-    "ja": "ステージング済みをコミット",
+    "ja": "ステージング済をコミット",
     "ja_read": "ステージングスミヲコミット",
     "zh": "提交已暂存文件",
     "pinyin": "tí jiāo yǐ zàn cún wén jiàn",
     "category": "扩展 (Extension)",
     "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitStaged"
-  },
-  {
-    "ja": "ステージング済をコミット (修正)",
-    "ja_read": "ステージングスミヲコミット (シュウセイ)",
-    "zh": "提交已暂存文件(修改)",
-    "pinyin": "tí jiāo yǐ zàn cún wén jiàn ( xiū gǎi )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
     "key": "extensions/vscode.git/package/command.commitStagedAmend"
-  },
-  {
-    "ja": "ステージング済みをコミット (修正、確認なし)",
-    "ja_read": "ステージングスミヲコミット (シュウセイ、カクニンナシ)",
-    "zh": "提交已暂存内容(修正，不验证)",
-    "pinyin": "tí jiāo yǐ zàn cún nèi róng ( xiū zhèng ， bù yàn zhèng )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitStagedAmendNoVerify"
-  },
-  {
-    "ja": "ステージング済みをコミット (確認なし)",
-    "ja_read": "ステージングスミヲコミット (カクニンナシ)",
-    "zh": "提交已暂存内容(不验证)",
-    "pinyin": "tí jiāo yǐ zàn cún nèi róng ( bù yàn zhèng )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitStagedNoVerify"
-  },
-  {
-    "ja": "コミットしてステージング (サインオフ)",
-    "ja_read": "コミットシテステージング (サインオフ)",
-    "zh": "提交已暂存文件(已署名)",
-    "pinyin": "tí jiāo yǐ zàn cún wén jiàn ( yǐ shǔ míng )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.commitStagedSigned"
   },
   {
     "ja": "作成元",
@@ -1251,15 +1098,6 @@
     "key": "extensions/vscode.git/package/command.pullFrom"
   },
   {
-    "ja": "プル (リベース)",
-    "ja_read": "プル (リベース)",
-    "zh": "拉取(变基)",
-    "pinyin": "lā qǔ ( biàn jī )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.pullRebase"
-  },
-  {
     "ja": "プッシュ",
     "ja_read": "プッシュ",
     "zh": "推送",
@@ -1267,33 +1105,6 @@
     "category": "扩展 (Extension)",
     "source": "vscode-git",
     "key": "extensions/vscode.git/package/command.push"
-  },
-  {
-    "ja": "プッシュ (タグをフォロー)",
-    "ja_read": "プッシュ (タグヲフォロー)",
-    "zh": "推送(“关注”标记)",
-    "pinyin": "tuī sòng (“ guān zhù ” biāo jì )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.pushFollowTags"
-  },
-  {
-    "ja": "プッシュ (タグをフォロー、強制)",
-    "ja_read": "プッシュ (タグヲフォロー、キョウセイ)",
-    "zh": "推送(“关注”标记，强制)",
-    "pinyin": "tuī sòng (“ guān zhù ” biāo jì ， qiáng zhì )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.pushFollowTagsForce"
-  },
-  {
-    "ja": "プッシュ (強制)",
-    "ja_read": "プッシュ (キョウセイ)",
-    "zh": "推送(强制)",
-    "pinyin": "tuī sòng ( qiáng zhì )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.pushForce"
   },
   {
     "ja": "タグをプッシュ",
@@ -1312,15 +1123,6 @@
     "category": "扩展 (Extension)",
     "source": "vscode-git",
     "key": "extensions/vscode.git/package/command.pushTo"
-  },
-  {
-    "ja": "プッシュ先... (強制)",
-    "ja_read": "プッシュサキ... (キョウセイ)",
-    "zh": "推送到...(强制)",
-    "pinyin": "tuī sòng dào ...( qiáng zhì )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.pushToForce"
   },
   {
     "ja": "ブランチのリベース",
@@ -1458,15 +1260,6 @@
     "key": "extensions/vscode.git/package/command.stageBlock"
   },
   {
-    "ja": "変更のステージング",
-    "ja_read": "ヘンコウノステージング",
-    "zh": "暂存更改",
-    "pinyin": "zàn cún gēng gǎi",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.stageChange"
-  },
-  {
     "ja": "選択した範囲をステージする",
     "ja_read": "センタクシタハンイヲステージスル",
     "zh": "暂存所选范围",
@@ -1530,15 +1323,6 @@
     "key": "extensions/vscode.git/package/command.stashDropAll"
   },
   {
-    "ja": "スタッシュ (未追跡ファイルを含む)",
-    "ja_read": "スタッシュ (ヒツジツイセキファイルヲフクム)",
-    "zh": "储藏(包含未跟踪)",
-    "pinyin": "chǔ cáng ( bāo hán wèi gēn zōng )",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.stashIncludeUntracked"
-  },
-  {
     "ja": "スタッシュをポップする",
     "ja_read": "スタッシュヲポップスル",
     "zh": "弹出储藏",
@@ -1555,15 +1339,6 @@
     "category": "扩展 (Extension)",
     "source": "vscode-git",
     "key": "extensions/vscode.git/package/command.stashPopLatest"
-  },
-  {
-    "ja": "スタッシュ (ステージング済み)",
-    "ja_read": "スタッシュ (ステージングスミ)",
-    "zh": "储藏暂存",
-    "pinyin": "chǔ cáng zàn cún",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.stashStaged"
   },
   {
     "ja": "同期",
@@ -1584,13 +1359,13 @@
     "key": "extensions/vscode.git/package/command.undoCommit"
   },
   {
-    "ja": "変更のステージング解除",
-    "ja_read": "ヘンコウノステージングカイジョ",
+    "ja": "ステージ解除の変更",
+    "ja_read": "ステージカイジョノヘンコウ",
     "zh": "取消暂存更改",
     "pinyin": "qǔ xiāo zàn cún gēng gǎi",
     "category": "扩展 (Extension)",
     "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.unstage"
+    "key": "extensions/vscode.git/package/command.unstageChange"
   },
   {
     "ja": "すべての変更のステージング解除",
@@ -1600,15 +1375,6 @@
     "category": "扩展 (Extension)",
     "source": "vscode-git",
     "key": "extensions/vscode.git/package/command.unstageAll"
-  },
-  {
-    "ja": "ステージ解除の変更",
-    "ja_read": "ステージカイジョノヘンコウ",
-    "zh": "取消暂存更改",
-    "pinyin": "qǔ xiāo zàn cún gēng gǎi",
-    "category": "扩展 (Extension)",
-    "source": "vscode-git",
-    "key": "extensions/vscode.git/package/command.unstageChange"
   },
   {
     "ja": "選択した範囲のステージを解除",
