@@ -238,6 +238,14 @@ function loadCurrentIndex() {
     return saved !== null ? parseInt(saved, 10) : -1;
 }
 
+function saveUserType() {
+    localStorage.setItem('userType', userTypeSelect.value);
+}
+
+function loadUserType() {
+    return localStorage.getItem('userType');
+}
+
 // --- Progress display ---
 function updateWordProgress() {
     if (filteredList.length === 0 || currentIndex < 0) {
@@ -267,7 +275,12 @@ async function init() {
         const res = await fetch('data/dictionary.json');
         if (!res.ok) throw new Error('Fetch failed');
         dictionary = await res.json();
-        
+
+        // Restore user type preference
+        const savedUserType = loadUserType();
+        const validUserTypes = Array.from(userTypeSelect.options).map(o => o.value);
+        if (savedUserType && validUserTypes.includes(savedUserType)) userTypeSelect.value = savedUserType;
+
         createFilters('source', sourceContainer, 'src-filter', loadSelectedSources());
         createFilters('category', categoryContainer, 'cat-filter', loadSelectedCategories());
         updateFilter();
@@ -527,7 +540,7 @@ reviewModeToggle.addEventListener('change', () => {
     showNext();
 });
 
-userTypeSelect.addEventListener('change', () => { updateFilter(); showCard(Math.max(0, currentIndex)); });
+userTypeSelect.addEventListener('change', () => { saveUserType(); updateFilter(); showCard(Math.max(0, currentIndex)); });
 
 document.getElementById('markBtn').addEventListener('click', () => {
     if (filteredList.length === 0) return;
