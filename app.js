@@ -270,6 +270,7 @@ async function init() {
         
         createFilters('source', sourceContainer, 'src-filter', loadSelectedSources());
         createFilters('category', categoryContainer, 'cat-filter', loadSelectedCategories());
+        renderBeginnerTip();
         updateFilter();
 
         // Start collapsed by default
@@ -289,16 +290,53 @@ async function init() {
     }
 }
 
+// 初心者向けおすすめカテゴリ
+const BEGINNER_RECOMMENDED_CATEGORY = '通用 (General)';
+
+// 初心者向けヒントを表示
+function renderBeginnerTip() {
+    const tipEl = document.getElementById('beginnerTip');
+    if (!tipEl) return;
+    tipEl.textContent = '';
+    const star = document.createTextNode('⭐ 初心者向け: ');
+    const bold = document.createElement('span');
+    bold.className = 'font-black';
+    bold.textContent = BEGINNER_RECOMMENDED_CATEGORY;
+    const rest = document.createTextNode(' から始めましょう！基本的な単語が一番多く含まれています。');
+    tipEl.appendChild(star);
+    tipEl.appendChild(bold);
+    tipEl.appendChild(rest);
+}
+
 // フィルタUIの動的作成用共通関数
 function createFilters(key, container, className, savedSelection) {
     const values = [...new Set(dictionary.map(item => item[key]))];
-    container.innerHTML = '';
+    container.replaceChildren();
     values.forEach(val => {
         const isChecked = savedSelection ? savedSelection.includes(val) : true;
+        const isBeginner = key === 'category' && val === BEGINNER_RECOMMENDED_CATEGORY;
         const label = document.createElement('label');
         label.className = "flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-[10px] font-black cursor-pointer hover:bg-indigo-50 transition-all select-none";
         if (isChecked) label.classList.add('border-indigo-500', 'text-indigo-600');
-        label.innerHTML = `<input type="checkbox" class="${className}" value="${val}" ${isChecked ? 'checked' : ''}> ${val.toUpperCase()}`;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = className;
+        checkbox.value = val;
+        checkbox.checked = isChecked;
+        label.appendChild(checkbox);
+
+        const text = document.createTextNode(val.toUpperCase());
+        label.appendChild(text);
+
+        if (isBeginner) {
+            const badge = document.createElement('span');
+            badge.className = 'ml-1 px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[9px] font-black border border-green-200';
+            badge.title = '初心者におすすめ！基本的な単語が多く含まれています。';
+            badge.textContent = '⭐ 初心者向け';
+            label.appendChild(badge);
+        }
+
         container.appendChild(label);
         
         label.querySelector('input').addEventListener('change', (e) => {
