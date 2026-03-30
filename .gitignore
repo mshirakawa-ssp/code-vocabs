@@ -6,6 +6,7 @@ ENV/
 # Python キャッシュ
 __pycache__/
 *.pyc
+*.pyo
 
 # 開発用データ（生データなど）
 data/raw/
@@ -17,3 +18,18 @@ Thumbs.db
 # エディタ設定
 .vscode/
 .idea/
+
+# 脆弱性診断システム: 環境変数ファイル（シークレット含む）
+.env
+
+# 脆弱性診断システム: 診断レポート出力（gitignore対象）
+reports/*/
+
+# 脆弱性診断システム: クローンしたソースコード
+reports/*/source/
+
+# データベースファイル (SQLite)
+database/*.db
+
+# Playwright ブラウザキャッシュ
+.playwright/

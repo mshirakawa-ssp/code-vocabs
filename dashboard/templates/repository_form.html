@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ 'リポジトリ編集' if repo else '新規リポジトリ' }} - 脆弱性診断システム{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <a href="{{ url_for('repositories') }}" class="btn btn-sm btn-outline-secondary me-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h2 class="mb-0">{{ 'リポジトリ編集' if repo else '新規リポジトリ追加' }}</h2>
+</div>
+
+<div class="card" style="max-width: 600px;">
+  <div class="card-body">
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">リポジトリ名 <span class="text-danger">*</span></label>
+        <input type="text" name="name" class="form-control" value="{{ repo.name if repo else '' }}" placeholder="例: my-web-app" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">GitHub URL <span class="text-danger">*</span></label>
+        <input type="url" name="url" class="form-control" value="{{ repo.url if repo else '' }}" placeholder="https://github.com/owner/repo" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">スケジュール (cron形式)</label>
+        <input type="text" name="schedule" class="form-control font-monospace" value="{{ repo.schedule if repo else '0 2 * * *' }}" placeholder="0 2 * * *">
+        <div class="form-text">例: <code>0 2 * * *</code> = 毎日 AM 2:00　<code>0 2 * * 1</code> = 毎週月曜 AM 2:00</div>
+      </div>
+      {% if repo %}
+      <div class="mb-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="enabled" id="enabled" {% if repo.enabled %}checked{% endif %}>
+          <label class="form-check-label" for="enabled">スケジュール診断を有効化</label>
+        </div>
+      </div>
+      {% endif %}
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check2 me-1"></i>{{ '更新' if repo else '追加' }}
+        </button>
+        <a href="{{ url_for('repositories') }}" class="btn btn-outline-secondary">キャンセル</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

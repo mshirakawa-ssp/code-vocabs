@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}設定 - 脆弱性診断システム{% endblock %}
+{% block content %}
+<h2 class="mb-4">設定</h2>
+
+<form method="post" style="max-width: 600px;">
+  <div class="card mb-4">
+    <div class="card-header"><i class="bi bi-clock me-2"></i>診断時間帯</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">診断許可開始時刻</label>
+          <input type="time" name="scan_window_start" class="form-control"
+                 value="{{ settings.get('scan_window_start', '02:00') }}">
+          <div class="form-text">この時刻以降に診断を開始します</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">診断許可終了時刻</label>
+          <input type="time" name="scan_window_end" class="form-control"
+                 value="{{ settings.get('scan_window_end', '05:00') }}">
+          <div class="form-text">この時刻までに診断を完了します</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header"><i class="bi bi-bell me-2"></i>通知設定</div>
+    <div class="card-body">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">通知先メールアドレス</label>
+        <input type="email" name="notification_email" class="form-control"
+               value="{{ settings.get('notification_email', '') }}"
+               placeholder="admin@example.com">
+        <div class="form-text">診断完了時に通知を送信します（未設定の場合は送信しません）</div>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">
+    <i class="bi bi-check2 me-1"></i>保存
+  </button>
+</form>
+
+<!-- セキュリティ情報 -->
+<div class="card mt-4" style="max-width: 600px;">
+  <div class="card-header"><i class="bi bi-info-circle me-2"></i>APIキー・シークレット管理</div>
+  <div class="card-body">
+    <p class="text-muted small mb-2">
+      以下の設定は <code>.env</code> ファイルまたは環境変数で管理してください。
+    </p>
+    <table class="table table-sm mb-0">
+      <tr><td><code>OPENAI_API_KEY</code></td><td>Qwen / OpenAI APIキー</td></tr>
+      <tr><td><code>OPENAI_API_BASE</code></td><td>APIエンドポイント (Qwen等)</td></tr>
+      <tr><td><code>OPENAI_MODEL</code></td><td>使用するモデル名</td></tr>
+      <tr><td><code>GITHUB_TOKEN</code></td><td>GitHub Personal Access Token</td></tr>
+      <tr><td><code>TARGET_BASE_URL</code></td><td>診断対象のベースURL</td></tr>
+      <tr><td><code>TARGET_USERNAME</code></td><td>診断用ログインID</td></tr>
+      <tr><td><code>TARGET_PASSWORD</code></td><td>診断用パスワード</td></tr>
+      <tr><td><code>FLASK_SECRET_KEY</code></td><td>Flaskセッションキー</td></tr>
+      <tr><td><code>ADMIN_PASSWORD</code></td><td>管理者初期パスワード</td></tr>
+    </table>
+  </div>
+</div>
+{% endblock %}

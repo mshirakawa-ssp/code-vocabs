@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}リポジトリ管理 - 脆弱性診断システム{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>リポジトリ管理</h2>
+  <a href="{{ url_for('new_repository') }}" class="btn btn-primary">
+    <i class="bi bi-plus-circle me-1"></i>追加
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>名前</th>
+            <th>URL</th>
+            <th>スケジュール</th>
+            <th>有効</th>
+            <th>登録日</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for repo in repos %}
+          <tr>
+            <td class="fw-semibold">{{ repo.name }}</td>
+            <td><a href="{{ repo.url }}" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;">{{ repo.url }}</a></td>
+            <td><code>{{ repo.schedule }}</code></td>
+            <td>
+              {% if repo.enabled %}
+                <span class="badge bg-success">有効</span>
+              {% else %}
+                <span class="badge bg-secondary">無効</span>
+              {% endif %}
+            </td>
+            <td class="small">{{ repo.created_at.strftime('%Y-%m-%d') }}</td>
+            <td>
+              <div class="d-flex gap-1">
+                <!-- 手動スキャン開始 -->
+                <form method="post" action="{{ url_for('trigger_scan', repo_id=repo.id) }}" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('診断を開始しますか？')">
+                    <i class="bi bi-play-fill"></i>
+                  </button>
+                </form>
+                <a href="{{ url_for('edit_repository', repo_id=repo.id) }}" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post" action="{{ url_for('delete_repository', repo_id=repo.id) }}" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('削除しますか？')">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center text-muted py-4">リポジトリが登録されていません</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
