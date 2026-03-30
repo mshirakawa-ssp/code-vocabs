@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}診断詳細 {{ scan.id }} - 脆弱性診断システム{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <a href="{{ url_for('scans') }}" class="btn btn-sm btn-outline-secondary me-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h2 class="mb-0">診断詳細</h2>
+  <code class="ms-3 text-muted">{{ scan.id }}</code>
+</div>
+
+<!-- 診断情報 -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">診断情報</div>
+      <div class="card-body">
+        <table class="table table-sm mb-0">
+          <tr><th>リポジトリ</th><td>{{ scan.repository.name if scan.repository else '-' }}</td></tr>
+          <tr><th>ステータス</th>
+            <td>
+              <span class="badge {% if scan.status == 'done' %}bg-success{% elif scan.status == 'error' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                {{ scan.status }}
+              </span>
+            </td>
+          </tr>
+          <tr><th>開始日時</th><td>{{ scan.started_at.strftime('%Y-%m-%d %H:%M:%S') if scan.started_at else '-' }}</td></tr>
+          <tr><th>完了日時</th><td>{{ scan.completed_at.strftime('%Y-%m-%d %H:%M:%S') if scan.completed_at else '-' }}</td></tr>
+          <tr><th>検出件数</th><td>{{ scan.finding_count }}</td></tr>
+          {% if scan.pr_url %}
+          <tr><th>GitHub PR</th><td><a href="{{ scan.pr_url }}" target="_blank">{{ scan.pr_url }}</a></td></tr>
+          {% endif %}
+          {% if scan.error_message %}
+          <tr><th>エラー</th><td class="text-danger small">{{ scan.error_message }}</td></tr>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header">アクション</div>
+      <div class="card-body d-flex flex-column gap-2">
+        {% if final_report_exists %}
+        <a href="{{ url_for('view_report', scan_id=scan.id) }}" target="_blank" class="btn btn-primary">
+          <i class="bi bi-file-earmark-text me-1"></i>最終レポートを確認
+        </a>
+        {% endif %}
+        <a href="{{ url_for('view_log', scan_id=scan.id) }}" class="btn btn-outline-secondary">
+          <i class="bi bi-terminal me-1"></i>実行ログを確認
+        </a>
+        {% if scan.status in ['pending', 'error'] and scan.repository %}
+        <form method="post" action="{{ url_for('trigger_scan', repo_id=scan.repository_id) }}">
+          <button type="submit" class="btn btn-warning w-100" onclick="return confirm('再診断しますか？')">
+            <i class="bi bi-arrow-clockwise me-1"></i>再診断
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 検出結果 -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-bug me-2"></i>検出結果</span>
+    <span class="badge bg-primary">{{ findings | length }} 件</span>
+  </div>
+  <div class="card-body p-0">
+    {% if findings %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>重要度</th>
+            <th>ルールID</th>
+            <th>ファイル:行</th>
+            <th>説明</th>
+            <th>ステータス</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for finding in findings %}
+          <tr>
+            <td>
+              <span class="badge {% if finding.severity in ['HIGH', 'ERROR'] %}bg-danger{% elif finding.severity in ['MEDIUM', 'WARNING'] %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                {{ finding.severity }}
+              </span>
+            </td>
+            <td><code class="small">{{ finding.rule_id }}</code></td>
+            <td class="small">{{ finding.file_path }}:{{ finding.line_number }}</td>
+            <td class="small">{{ finding.message[:100] }}{% if finding.message | length > 100 %}…{% endif %}</td>
+            <td>
+              <span class="badge badge-status-{{ finding.status }}">
+                {% if finding.status == 'open' %}未対応
+                {% elif finding.status == 'fixed' %}修正済み
+                {% elif finding.status == 'wont_fix' %}対応不要
+                {% elif finding.status == 'false_positive' %}誤検知
+                {% else %}{{ finding.status }}{% endif %}
+              </span>
+            </td>
+            <td>
+              <select class="form-select form-select-sm status-select" data-finding-id="{{ finding.id }}" style="width: 110px;">
+                <option value="open" {% if finding.status == 'open' %}selected{% endif %}>未対応</option>
+                <option value="fixed" {% if finding.status == 'fixed' %}selected{% endif %}>修正済み</option>
+                <option value="wont_fix" {% if finding.status == 'wont_fix' %}selected{% endif %}>対応不要</option>
+                <option value="false_positive" {% if finding.status == 'false_positive' %}selected{% endif %}>誤検知</option>
+              </select>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% elif sast_report %}
+    <!-- DBにインポートされていない場合はJSONから直接表示 -->
+    <div class="p-3">
+      <p class="text-muted small mb-2">
+        <i class="bi bi-info-circle me-1"></i>
+        DBへのインポート前のため、SASTレポートを直接表示しています。
+      </p>
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead class="table-light">
+            <tr><th>ルールID</th><th>ファイル</th><th>重要度</th><th>説明</th></tr>
+          </thead>
+          <tbody>
+            {% for result in sast_report.get('results', [])[:50] %}
+            <tr>
+              <td><code class="small">{{ result.check_id }}</code></td>
+              <td class="small">{{ result.path }}:{{ result.start.line }}</td>
+              <td><span class="badge bg-secondary">{{ result.extra.severity }}</span></td>
+              <td class="small">{{ result.extra.message[:100] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-4">検出結果がありません</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.status-select').forEach(function(select) {
+  select.addEventListener('change', function() {
+    const findingId = this.dataset.findingId;
+    const newStatus = this.value;
+    fetch(`/findings/${findingId}/status`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({status: newStatus})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.ok) alert('ステータス更新に失敗しました');
+    })
+    .catch(() => alert('通信エラーが発生しました'));
+  });
+});
+</script>
+{% endblock %}
